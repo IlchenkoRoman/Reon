@@ -3,44 +3,49 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path'); 
 
+const { Task, initializeDatabase } = require('./db');
+
 const app = express();
 const PORT = 3000;
 app.use(express.static(path.join(__dirname, '/public')));
 
-let tasks = [];
+initializeDatabase();
 
 app.use(cors());
 app.use(bodyParser.json());
 
-app.get('/api/tasks', (req, res) => {
+app.get('/api/tasks', async (req, res) => {
+    const tasks = await Task.findAll();
     res.json(tasks);
 });
 
-app.post('/api/tasks', (req, res) => {
-    const newTask = req.body;
-    tasks.push(newTask);
+app.post('/api/tasks', async (req, res) => {
+    const newTask = await Task.create(req.body);
     res.status(201).json(newTask);
 });
 
-app.put('/api/tasks/:id', (req, res) => {
+app.put('/api/tasks/:id', async (req, res) => {
     const taskId = parseInt(req.params.id, 10);
     const updatedData = req.body;
-    const taskIndex = tasks.findIndex(task => task.id === taskId);
-    if (taskIndex !== -1) {
-        tasks[taskIndex] = { ...tasks[taskIndex], ...updatedData };
-        res.status(200).json(tasks[taskIndex]);
+    const task = await Task.findByPk(taskId);
+    if (task) {
+        await task.update(updatedData);
+        res.status(200).json(task);
     } else {
-        console.error('Task not found');
         res.status(404).json({ message: 'Task not found' });
     }
 });
 
-app.delete('/api/tasks/:id', (req, res) => {
+app.delete('/api/tasks/:id', async (req, res) => {
     const taskId = parseInt(req.params.id, 10);
-    tasks = tasks.filter(task => task.id !== taskId);
-    res.status(204).send();
+    const task = await Task.findByPk(taskId);
+    if (task) {
+        await task.destroy();
+        res.status(204).send();
+    } else {
+        res.status(404).json({ message: 'Task not found' });
+    }
 });
-
 
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '/public/index.html'));
