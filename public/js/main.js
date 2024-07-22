@@ -5,23 +5,18 @@ const textAreaInput = document.querySelector('#textAreaInput')
 const dateInput = document.querySelector('#dateInput')
 const searchEngine = document.querySelector("#search-engine")
 
-let tasks = []
-
-if(localStorage.getItem('tasks')){
-    tasks = JSON.parse(localStorage.getItem('tasks'))
+async function fetchTasks() {
+    const response = await fetch('http://localhost:3000/api/tasks');
+    const tasks = await response.json();
+    tasks.forEach(task => render(task));
+    checkEmptyList()
 }
 
 const render = (task) => {
-    let classDone
-    if(task.done == false){
-        classDone = "task-title"
-    }else {
-        classDone = "task-title task-title--done"
-    }
-
-    let now = new Date().toLocaleDateString()
-    if(task.deadline != '' && now > task.deadline){
-        task.overdue = true
+    let classDone = task.done ? "task-title task-title--done" : "task-title";
+    let now = new Date().toLocaleDateString();
+    if (task.deadline !== '' && now > task.deadline) {
+        task.overdue = true;
     }
 
     const statusClass = task.overdue &&  !task.done ? 'status' : 'status none';
@@ -51,33 +46,22 @@ const render = (task) => {
 
 }
 
-tasks.forEach((e) => {
-    render(e)
-})
-
-checkEmptyList()
-
 function checkEmptyList() {
-    if(tasks.length === 0){
+    const taskInList = tasksList.querySelectorAll('li')
+    if(taskInList.length === 0){
        const emptyList = `<li id="emptyList" class="list-group-item empty-list">
                                 <img src="./img/images.png" alt="Empty" width="48" class="mt-3">
                                 <div class="empty-list__title">Список дел пуст</div>
                             </li>`
        tasksList.insertAdjacentHTML('afterbegin', emptyList)
-    }
-
-    if(tasks.length > 0){
+    }else{
         const emptyListCounter = document.querySelector('#emptyList')
         emptyListCounter ? emptyListCounter.remove() : null
     }
 }
 
-const saveLocalStorege = () => {
-    localStorage.setItem('tasks', JSON.stringify(tasks))
-}
 
-const addTask = (e) =>{
-
+const addTask = async (e) =>{
     e.preventDefault();
 
     const taskText = taskInput.value
@@ -94,67 +78,63 @@ const addTask = (e) =>{
         overdue: false
     }
 
-    tasks.push(newTask)
-
-    saveLocalStorege()
-
-    render(newTask)
+    const response = await fetch('http://localhost:3000/api/tasks', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newTask)
+    });
+    const task = await response.json();
+    render(task);
 
     taskInput.value = ''
-
     textAreaInput.value = ''
-
     dateInput.value = ''
-
     taskInput.focus()
-
     checkEmptyList()
 }
 
-const deleteTask = (e) => {
+const deleteTask = async (e) => {
     if(e.target.dataset.action == 'delete'){
         const parent = e.target.closest('.list-group-item')
 
         const id = parent.id
 
-        const index = tasks.findIndex((task) => {
-            if(task.id == id) {
-                return true
-            }
-        })
-
-        tasks.splice(index, 1)
-
-        saveLocalStorege()
+        await fetch(`http://localhost:3000/api/tasks/${id}`, {
+            method: 'DELETE'
+        });
+        
 
         parent.remove()
-
         checkEmptyList()
     }
 }
 
-const doneTask = (e) => {
+const doneTask = async (e) => {
     if(e.target.dataset.action == 'done'){
         const parent = e.target.closest('.list-group-item')
 
         const id = parent.id
-
-        const item = tasks.find((task) => {
-            if (task.id == id){
-                return true
-            }
-        })
-        item.done = !item.done
-
-        saveLocalStorege()
-
-        if(item.overdue == true){
-            const deadlineStatus = parent.querySelector('.status')
-            deadlineStatus.classList.toggle('none')
+        const doneParent = parent.querySelector('.task-title')
+        if(doneParent.classList.contains('task-title--done')){
+            await fetch(`http://localhost:3000/api/tasks/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ done: false })
+            });
+        } else {
+            await fetch(`http://localhost:3000/api/tasks/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ done: true })
+            });
         }
 
-
-        const doneParent = parent.querySelector('.task-title')
         doneParent.classList.toggle('task-title--done')
     }
 }
@@ -167,14 +147,15 @@ const showHidenInfo = (e) => {
     const emptyDate = taskTitle.querySelector(".date")
     taskTitle.classList.toggle('none')
     const id = parent.id
-        tasks.forEach((e) => {
-            if(e.id == id && e.description == ''){
-                emptyDescription.classList.add('none')
-            }if(e.id == id && e.deadline == ''){
-                emptyDate.classList.add('none')
-            }
-        })
+    const descriptionText = emptyDescription.textContent;
+    const dateText = emptyDate.textContent;
+    if (descriptionText == 'Описание:  '){
+        emptyDescription.classList.add('none')
     }
+    if (dateText == 'Дедлайн: '){
+        emptyDate.classList.add('none')
+    }
+}
 }
 
 const searching = () => {
@@ -201,4 +182,4 @@ tasksList.addEventListener('click', deleteTask)
 tasksList.addEventListener('click', doneTask)
 tasksList.addEventListener('click', showHidenInfo)
 searchEngine.addEventListener('input', searching)
-
+document.addEventListener('DOMContentLoaded', fetchTasks);
