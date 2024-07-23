@@ -1,33 +1,29 @@
 services:
-  db:
-    image: nouchka/sqlite3
-    container_name: sqlite_db
-    volumes:
-      - ./database.sqlite:/database/database.sqlite
-    environment:
-      SQLITE_DATABASE: /database/database.sqlite
+  frontend:
+    build:
+      context: ./public  # Контекст сборки для фронтенда
+      dockerfile: Dockerfile  # Имя Dockerfile для фронтенда
+    ports:
+      - "5000:5000"
 
   server:
     build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: app_server
-    volumes:
-      - .:/app
-      - ./database.sqlite:/app/database.sqlite
-    ports:
-      - "3001:3001"
-    depends_on:
-      - db
-
-  ui:
-    build:
-      context: ./public
-      dockerfile: Dockerfile
-    container_name: app_ui
-    volumes:
-      - ./public:/app
+      context: .  # Контекст сборки для сервера
+      dockerfile: Dockerfile  # Имя Dockerfile для сервера
     ports:
       - "3000:3000"
-    depends_on:
-      - server
+    volumes:
+      - ./database.sqlite:/app/database.sqlite
+      - ./db.js:/app/db.js
+    environment:
+      - DATABASE_PATH=/app/database.sqlite
+
+  database:
+    image: nouchka/sqlite3:latest 
+    volumes:
+      - db_data:/data/db
+    environment:
+      - SQLITE_DATABASE=/data/db/database.sqlite
+
+volumes:
+  db_data:
