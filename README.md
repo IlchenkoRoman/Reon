@@ -20,7 +20,7 @@
 Ссылка на работающий экземпляр приложения https://reon-chi.vercel.app/
 Сслка на докер образ в хабе:
 
-сервер - https://hub.docker.com/repository/docker/ramenformom/server/general
-фронтенд - https://hub.docker.com/repository/docker/ramenformom/frontend/general
+сервер - https://hub.docker.com/r/ramenformom/server
+фронтенд - https://hub.docker.com/r/ramenformom/frontend
 
 для сборки и запуска нужно ввести docker-compose up --build
