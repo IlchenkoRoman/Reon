@@ -26,12 +26,12 @@ const render = (task) => {
                                 <div class='visible d-flex'>
                                     <div><span class="${classDone} main-text">${task.text}</span></div>
                                         <div class="task-item__buttons">
-                                            <img src="./img/deadline.svg" class='${statusClass}' title="Просрочена!" alt="Done" width="36" height="36">
+                                            <img src="/public/img/deadline.svg" class='${statusClass}' title="Просрочена!" alt="Done" width="36" height="36">
                                             <button type="button" data-action="done" class="btn-action">
-                                                <img src="./img/tick.svg" alt="Done" width="18" height="18">
+                                                <img src="/public/img/tick.svg" alt="Done" width="18" height="18">
                                             </button>
                                             <button type="button" data-action="delete" class="btn-action">
-                                                <img src="./img/cross.svg" alt="Done" width="18" height="18">
+                                                <img src="/public/img/cross.svg" alt="Done" width="18" height="18">
                                             </button>
                                         </div>
                                 </div>
@@ -50,7 +50,7 @@ function checkEmptyList() {
     const taskInList = tasksList.querySelectorAll('li')
     if(taskInList.length === 0){
        const emptyList = `<li id="emptyList" class="list-group-item empty-list">
-                                <img src="./img/images.png" alt="Empty" width="48" class="mt-3">
+                                <img src="/public/img/images.png" alt="Empty" width="48" class="mt-3">
                                 <div class="empty-list__title">Список дел пуст</div>
                             </li>`
        tasksList.insertAdjacentHTML('afterbegin', emptyList)
