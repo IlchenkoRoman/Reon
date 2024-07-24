@@ -7,7 +7,7 @@ const { Task, initializeDatabase } = require('./db');
 
 const app = express();
 const PORT = 3000;
-app.use(express.static(path.join(__dirname, '/public')));
+app.use(express.static(path.join(__dirname, './')));
 
 initializeDatabase();
 
@@ -48,7 +48,7 @@ app.delete('/api/tasks/:id', async (req, res) => {
 });
 
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '/public/index.html'));
+    res.sendFile(path.join(__dirname, '/index.html'));
 });
 
 app.listen(PORT, () => {
